@@ -1,3 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Product Details</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+      integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC"
+      crossorigin="anonymous"
+    />
+  </head>
+  <body>
+    <div class="container itemDetails">
+      <div class="row mt-4">
+        <div class="col-md-6">
+          <div class="product-image mt-4">
+            <img id="productImage" src="" alt="Product Image" />
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="product-details mt-4">
+            <h1 id="productName"></h1>
+            <p id="productPrice"></p>
+            <p id="productRating"></p>
+          </div>
+        </div>
+        <div class="btn1"></div>
+      </div>
+    </div>
+
+    <!-- Include any JavaScript files needed for functionality -->
+    <script>
+      const addToCart = async (id) => {
+        try {
+          const addCartValue = await fetch(
+            `http://localhost:8080/data/addToCart/${id}`,
+            {
+              method: "PUT",
+              ContentType: "application/json",
+            }
+          );
+          if (addCartValue.ok) {
+            const addCartButton = document.getElementById(`btn_${id}`);
+            addCartButton.classList.add("btn-danger");
+            addCartButton.innerHTML = "Remove from cart";
+            addCartButton.onclick = () => removeFromCart(id);
+          }
+        } catch (error) {
+          console.log(error);
+        }
+      };
+
+      const removeFromCart = async (id) => {
+        try {
+          const removeCartValue = await fetch(
+            `http://localhost:8080/data/removeFromCart/${id}`,
+            {
+              method: "PUT",
+              ContentType: "application/json",
+            }
+          );
+          if (removeCartValue.ok) {
+            const removeCartButton = document.getElementById(`btn_${id}`);
+            removeCartButton.classList.remove("btn-danger");
+            removeCartButton.classList.add("btn-primary");
+
+            removeCartButton.innerHTML = "Add to cart";
+            removeCartButton.onclick = () => addToCart(id);
+          }
+        } catch (error) {
+          console.log(error);
+        }
+      };
+      const updateProductDetails = async () => {
+        try {
+          const urlParams = new URLSearchParams(window.location.search);
+          const productId = urlParams.get("id");
+
+          const response = await fetch(
+            `http://localhost:8080/data/getProductByID/${productId}`
+          );
+
+          if (response.ok) {
+            const data = await response.json();
+            console.log(data);
+            console.log(data[0]);
+
+            document.getElementById("productName").innerText = data[0].name;
+            document.getElementById("productImage").src = data[0].imageLink;
+            document.getElementById(
+              "productPrice"
+            ).innerText = `Price: $${data[0].price}`;
+            document.getElementById(
+              "productRating"
+            ).innerText = `Rating ${data[0].rating}`;
+
+            const btn1 = document.getElementsByClassName("btn1")[0];
+            btn1.innerHTML = `
+        <div class="col-md-6 h-100 mt-2 product-btn">
+          ${
+            data[0].cart
+              ? `<button
+                  id="btn_${data[0].id}"
+                  onClick="removeFromCart(${data[0].id})"
+                  class="btn btn-danger"
+                >
+                  Remove from cart
+                </button>`
+              : `<button
+                  id="btn${data[0].id}"
+                  onClick="addToCart(${data[0].id})"
+                  class="btn btn-primary"
+                >
+                  Add to cart
+                </button>`
+          }
+        </div>`;
+          } else {
+            console.error("Failed to fetch product details");
+          }
+        } catch (error) {
+          console.error("Failed to update product details", error);
+        }
+      };
+
+      updateProductDetails();
+    </script>
+  </body>
+</html>
+
+
+
+
 # Getting Started with Create React App
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
